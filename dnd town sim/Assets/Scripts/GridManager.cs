@@ -7,13 +7,21 @@ public class GridManager : MonoBehaviour
     [SerializeField] private int m_width, m_height;
     [SerializeField] private Tile mpr_tile;
     [SerializeField] private Transform m_camTransform;
+    [SerializeField] private List<BaseAI> m_aiAgentsPrefabs;
 
+    private List<BaseAI> m_activeAIAgents;
     private Dictionary<Vector2, Tile> m_tiles;
 
     private void Start()
     {
         m_tiles = new Dictionary<Vector2, Tile>();
         GenerateGrid();
+        m_activeAIAgents = new List<BaseAI>();
+        for (int i =0; i < m_aiAgentsPrefabs.Count; i++)
+        {
+            var spawnedAi = Instantiate(m_aiAgentsPrefabs[i], new Vector3(i+1, i+1,-1), Quaternion.identity);
+            m_activeAIAgents.Add(spawnedAi);
+        }
     }
     void GenerateGrid()
     {

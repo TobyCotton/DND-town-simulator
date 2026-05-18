@@ -248,6 +248,8 @@ MonoBehaviour:
   m_height: 9
   mpr_tile: {fileID: 3212528269731509487, guid: 172c72e43e99b0e4d930a08fefdf03d4, type: 3}
   m_camTransform: {fileID: 519420032}
+  m_aiAgentsPrefabs:
+  - {fileID: 2416276531142117121, guid: 7084677ea76965e449b9f4f4f7b6d038, type: 3}
 --- !u!4 &522774426
 Transform:
   m_ObjectHideFlags: 0
