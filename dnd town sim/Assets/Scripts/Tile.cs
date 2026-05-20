@@ -40,4 +40,13 @@ public class Tile : MonoBehaviour
         m_road.SetActive(true);
         m_tileType = TileType.e_Road;
     }
+
+    public bool isHighlighted()
+    {
+        return m_highlight.activeSelf;
+    }
+    public TileType ThisTylesType()
+    {
+        return m_tileType;
+    }
 }

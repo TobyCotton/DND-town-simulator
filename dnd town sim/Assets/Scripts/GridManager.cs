@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class GridManager : MonoBehaviour
 {
@@ -20,7 +21,39 @@ public class GridManager : MonoBehaviour
         for (int i =0; i < m_aiAgentsPrefabs.Count; i++)
         {
             var spawnedAi = Instantiate(m_aiAgentsPrefabs[i], new Vector3(i+1, i+1,-1), Quaternion.identity);
+            spawnedAi.SetGridManager(this);
             m_activeAIAgents.Add(spawnedAi);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            bool found = false;
+            for (int x = 0; x < m_width; x++)
+            {
+                for (int y = 0; y < m_height; y++)
+                {
+                    if (m_tiles[new Vector2(x, y)].isHighlighted())
+                    {
+                        Vector3 destination = new Vector3(x, y, 0);
+                        foreach (BaseAI ai in m_activeAIAgents)
+                        {
+                            if(ai.isSelected())
+                            {
+                                ai.SetDestination(destination);
+                            }
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if(found)
+                {
+                    break;
+                }
+            }
         }
     }
     void GenerateGrid()
@@ -51,5 +84,15 @@ public class GridManager : MonoBehaviour
 
         Debug.LogWarning($"Error tile not found at position x:{pos.x} and y:{pos.y}");
         return null;
+    }
+
+    public TileType GetTileType(Vector2 pos)
+    {
+        Tile requestedTile = GetTileAtPosition(pos);
+        if (requestedTile != null)
+        {
+            return requestedTile.ThisTylesType();
+        }
+        return TileType.e_None;
     }
 } 

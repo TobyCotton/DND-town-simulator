@@ -1,6 +1,6 @@
 using UnityEngine;
 
-enum TileType
+public enum TileType
 {
     e_Road,
     e_Building,
