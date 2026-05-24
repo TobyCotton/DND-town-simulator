@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 519420032}
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -215,6 +216,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b265da39c537e740ae539e24a8b1ee1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_zoomSpeed: 10
+  m_minFOV: 2
+  m_maxFOV: 25
+  m_camspeed: 10
 --- !u!1 &522774424
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,8 +261,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc5b0e61def1a6468e5d73400d3e4bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_width: 16
-  m_height: 9
+  m_chunksSide: 16
+  m_numberOfChunksSide: 3
   mpr_tile: {fileID: 3212528269731509487, guid: 172c72e43e99b0e4d930a08fefdf03d4, type: 3}
   m_camTransform: {fileID: 519420032}
   m_aiAgentsPrefabs:

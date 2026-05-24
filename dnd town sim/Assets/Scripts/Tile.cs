@@ -10,15 +10,18 @@ public class Tile : MonoBehaviour
     [SerializeField] private GameObject m_highlight;
     [SerializeField] private GameObject m_road;
     [SerializeField] private float m_moveCost;
+    private GridManager m_gridManager;
     private TileType m_tileType = TileType.e_None;
 
-    public void Init(bool isOffset)
+    public void Init(bool isOffset,GridManager gridManager)
     {
         m_renderer.color = isOffset ? m_baseColour : m_offsetColour;
+        m_gridManager = gridManager;
     }
 
     void OnMouseEnter()
     {
+        m_gridManager.SetHighlightedTile(this.transform.position);
         if (Input.GetMouseButton(0))
         {
             SetTileToRoad();

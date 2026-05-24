@@ -20,7 +20,7 @@ public class BaseAI : MonoBehaviour
     {
         if (m_currentlyMoving)
         {
-            float onRoad = m_gridManager.GetTileType(new Vector2(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y))) == TileType.e_Road ? 2.0f: 1.0f ;
+            float onRoad = m_gridManager.GetTileType(new Vector2(Mathf.FloorToInt(Mathf.FloorToInt(transform.position.x)/m_gridManager.m_chunksSide), Mathf.FloorToInt(Mathf.FloorToInt(transform.position.y) / m_gridManager.m_chunksSide)), new Vector2(Mathf.FloorToInt(transform.position.x), Mathf.FloorToInt(transform.position.y))) == TileType.e_Road ? 2.0f: 1.0f ;
             transform.position = Vector3.MoveTowards(transform.position, m_destination, m_speed * onRoad * Time.deltaTime);
         }
     }
@@ -31,7 +31,7 @@ public class BaseAI : MonoBehaviour
     public void SetDestination(Vector3 destination)
     {
         m_currentlyMoving = true;
-        m_destination = destination;
+        m_destination = new Vector3(destination.x,destination.y,-1);
         m_highlight.SetActive(false);
     }
     public void MoveToSquare(Vector3 newPos)
