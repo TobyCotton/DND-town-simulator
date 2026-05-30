@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class GridManager : MonoBehaviour
 {
@@ -13,7 +12,12 @@ public class GridManager : MonoBehaviour
     private Vector3 m_currentHighlightedCell;
     private List<BaseAI> m_activeAIAgents;
     private Dictionary<Vector2, Dictionary<Vector2, Tile>> m_grid;
+    private List<AbstractNode> m_abstractGraph;
 
+    public List<AbstractNode> GetAbstractGraph()
+    {
+        return m_abstractGraph;
+    }
     public void SetHighlightedTile(Vector3 tilePose)
     {
         m_currentHighlightedCell = tilePose;
@@ -42,6 +46,10 @@ public class GridManager : MonoBehaviour
                     ai.SetDestination(m_currentHighlightedCell);
                 }
             }
+        }
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            m_abstractGraph = HPAGraphBuilder.Build(this);
         }
     }
     void GenerateGrid()
@@ -92,5 +100,47 @@ public class GridManager : MonoBehaviour
             return requestedTile.ThisTylesType();
         }
         return TileType.e_None;
+    }
+
+    
+    public bool WorldToGrid(Vector3 worldPos, out Vector2 chunkPos, out Vector2 tilePos)// Converts a world position to chunk and tile coordinates
+    {
+        int tileX = Mathf.FloorToInt(worldPos.x);
+        int tileY = Mathf.FloorToInt(worldPos.y);
+
+        chunkPos = new Vector2(Mathf.FloorToInt((float)tileX / m_chunksSide),Mathf.FloorToInt((float)tileY / m_chunksSide));
+
+        // Local position within the chunk
+        tilePos = new Vector2(tileX - (int)chunkPos.x * m_chunksSide,tileY - (int)chunkPos.y * m_chunksSide);
+
+        // Validate it's within bounds
+        return tileX >= 0 && tileY >= 0 && chunkPos.x < m_numberOfChunksSide && chunkPos.y < m_numberOfChunksSide;
+    }
+
+    
+    public bool IsWalkable(Vector3 worldPos)
+    {
+        if (!WorldToGrid(worldPos, out Vector2 chunkPos, out Vector2 tilePos))
+        {
+            return false;
+        }
+
+        Tile tile = GetTileAtPosition(chunkPos, tilePos);
+        if (tile == null)
+        {
+            return false;
+        }
+        return tile.IsWalkable();
+    }
+
+    public float GetMoveCostAt(Vector3 worldPos)
+    {
+        if (!WorldToGrid(worldPos, out Vector2 chunkPos, out Vector2 tilePos))
+        {
+            return float.MaxValue;
+        }
+
+        Tile tile = GetTileAtPosition(chunkPos, tilePos);
+        return tile != null ? tile.GetMoveCost() : float.MaxValue;
     }
 } 
