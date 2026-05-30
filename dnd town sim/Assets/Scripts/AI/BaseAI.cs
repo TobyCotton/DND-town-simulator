@@ -95,13 +95,9 @@ public class BaseAI : MonoBehaviour
         m_gridManager.WorldToGrid(startWorld, out Vector2 startChunk, out Vector2 startTile);
         m_gridManager.WorldToGrid(goalWorld, out Vector2 goalChunk, out Vector2 goalTile);
 
-        // Same chunk: skip high-level entirely
         if (startChunk == goalChunk)
         {
-            return LowLevelToWorld(startChunk,
-                Pathfinder.FindPathInChunk(
-                    startChunk, startTile, goalTile,
-                    m_gridManager, m_gridManager.m_chunksSide));
+            return LowLevelToWorld(startChunk,Pathfinder.FindPathInChunk(startChunk, startTile, goalTile,m_gridManager, m_gridManager.m_chunksSide));
         }
 
         AbstractNode startNode = Pathfinder.GetNearestNode(startWorld, startChunk, graph);
@@ -116,31 +112,29 @@ public class BaseAI : MonoBehaviour
 
         List<Vector3> fullPath = new List<Vector3>();
 
-        // AI start → first waypoint
-        AppendLowLevel(fullPath, startChunk, startTile, hlPath[0].tilePos);
+        // Cursor tracking where the agent actually is during stitching
+        Vector2 currentChunk = startChunk;
+        Vector2 currentTile = startTile;
 
-        // Walk the high-level waypoint list
-        for (int i = 0; i < hlPath.Count - 1; i++)
+        foreach (AbstractNode waypoint in hlPath)
         {
-            AbstractNode current = hlPath[i];
-            AbstractNode next = hlPath[i + 1];
-
-            if (current.chunkPos != next.chunkPos)
+            if (waypoint.chunkPos == currentChunk)
             {
-                // Step across the border — next node is the mirror tile
-                // in the neighbouring chunk, already adjacent so no low-level needed
-                fullPath.Add(new Vector3(next.worldPos.x, next.worldPos.y, -1f));
+                // Same chunk: low-level A* from current position to this waypoint
+                AppendLowLevel(fullPath, currentChunk, currentTile, waypoint.tilePos);
             }
             else
             {
-                // Both waypoints are inside the same chunk — low-level between them
-                AppendLowLevel(fullPath, current.chunkPos, current.tilePos, next.tilePos);
+                // Different chunk: single step across the border (tiles are adjacent by construction)
+                fullPath.Add(new Vector3(waypoint.worldPos.x, waypoint.worldPos.y, -1f));
             }
+
+            currentChunk = waypoint.chunkPos;
+            currentTile = waypoint.tilePos;
         }
 
-        // Last waypoint → actual goal tile
-        AbstractNode lastNode = hlPath[hlPath.Count - 1];
-        AppendLowLevel(fullPath, goalChunk, lastNode.tilePos, goalTile);
+        // Final leg from last waypoint to the actual goal tile
+        AppendLowLevel(fullPath, goalChunk, currentTile, goalTile);
 
         return fullPath;
     }

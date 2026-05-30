@@ -63,29 +63,49 @@ public static class HPAGraphBuilder
         return total;
     }
 
-    private static void CheckNeighbour(GridManager grid, List<AbstractNode> nodes, Dictionary<(Vector2, Vector2), AbstractNode> nodeMap, 
-        Vector2 chunk,int numChunks, int chunkSize, int cx, int cy, bool checkRight)
+    private static void CheckNeighbour(GridManager grid, List<AbstractNode> nodes,
+        Dictionary<(Vector2, Vector2), AbstractNode> nodeMap,
+        Vector2 chunk, int numChunks, int chunkSize, int cx, int cy, bool checkRight)
     {
         int cordNumber = checkRight ? cx + 1 : cy + 1;
-        
-        if (cordNumber < numChunks)
+
+        if (cordNumber >= numChunks)
         {
-            Vector2 chunkB = checkRight ? new Vector2(cordNumber, cy) : new Vector2(cx, cy + 1);
-            // The border column: rightmost column of chunkA, leftmost of chunkB
-            for (int t = 0; t < chunkSize; t++)
+            return;
+        }
+
+        Vector2 chunkB = checkRight ? new Vector2(cordNumber, cy) : new Vector2(cx, cy + 1);
+
+        // Find contiguous runs of walkable border tiles and place one node per run
+        int runStart = -1;
+
+        for (int t = 0; t <= chunkSize; t++) // one past the end to flush the final run
+        {
+            Vector2 tileA = checkRight ? new Vector2(chunkSize - 1, t) : new Vector2(t, chunkSize - 1);
+            Vector2 tileB = checkRight ? new Vector2(0, t) : new Vector2(t, 0);
+
+            bool walkable = t < chunkSize && IsCrossingWalkable(chunk, tileA, chunkB, tileB, grid);
+
+            if (walkable && runStart == -1)
             {
-                Vector2 tileA = checkRight ? new Vector2(chunkSize - 1, t) : new Vector2(t, chunkSize - 1);
-                Vector2 tileB = checkRight ? new Vector2(0, t) : new Vector2(t, 0);
+                // Start of a new run
+                runStart = t;
+            }
+            else if (!walkable && runStart != -1)
+            {
+                // End of a run — place one node at the midpoint
+                int mid = (runStart + t - 1) / 2;
 
-                if (IsCrossingWalkable(chunk, tileA, chunkB, tileB, grid))
-                {
-                    AbstractNode nodeA = GetOrCreate(chunk, tileA, chunkSize, nodeMap, nodes);
-                    AbstractNode nodeB = GetOrCreate(chunkB, tileB, chunkSize, nodeMap, nodes);
+                Vector2 midTileA = checkRight ? new Vector2(chunkSize - 1, mid) : new Vector2(mid, chunkSize - 1);
+                Vector2 midTileB = checkRight ? new Vector2(0, mid) : new Vector2(mid, 0);
 
-                    // Cross-chunk edges cost 1 (stepping across the border)
-                    nodeA.edges.Add(new AbstractEdge(nodeB, 1f));
-                    nodeB.edges.Add(new AbstractEdge(nodeA, 1f));
-                }
+                AbstractNode nodeA = GetOrCreate(chunk, midTileA, chunkSize, nodeMap, nodes);
+                AbstractNode nodeB = GetOrCreate(chunkB, midTileB, chunkSize, nodeMap, nodes);
+
+                nodeA.edges.Add(new AbstractEdge(nodeB, 1f));
+                nodeB.edges.Add(new AbstractEdge(nodeA, 1f));
+
+                runStart = -1;
             }
         }
     }
