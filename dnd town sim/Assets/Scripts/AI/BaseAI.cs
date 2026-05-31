@@ -56,6 +56,12 @@ public class BaseAI : MonoBehaviour
     }
     public void SetDestination(Vector3 destination)
     {
+        if (!m_gridManager.IsWalkable(destination))
+        {
+            Debug.LogWarning($"{name}: destination {destination} is not walkable, ignoring.");
+            return;
+        }
+
         List<Vector3> path = BuildFullPath(transform.position, destination);
 
         if (path == null || path.Count == 0)
@@ -97,22 +103,40 @@ public class BaseAI : MonoBehaviour
 
         if (startChunk == goalChunk)
         {
-            return LowLevelToWorld(startChunk,Pathfinder.FindPathInChunk(startChunk, startTile, goalTile,m_gridManager, m_gridManager.m_chunksSide));
+            return LowLevelToWorld(startChunk, Pathfinder.FindPathInChunk(
+                startChunk, startTile, goalTile, m_gridManager, m_gridManager.m_chunksSide));
         }
 
-        AbstractNode startNode = Pathfinder.GetNearestNode(startWorld, startChunk, graph);
-        AbstractNode goalNode = Pathfinder.GetNearestNode(goalWorld, goalChunk, graph);
+        // Build temporary nodes for start and goal
+        AbstractNode startNode = Pathfinder.BuildTemporaryNode(
+            startWorld, startChunk, startTile, graph, m_gridManager);
+        AbstractNode goalNode = Pathfinder.BuildTemporaryNode(
+            goalWorld, goalChunk, goalTile, graph, m_gridManager);
+
+        if (startNode == null || goalNode == null)
+        {
+            Debug.LogWarning($"{name}: could not connect start or goal to abstract graph");
+
+            foreach (AbstractNode node in graph)
+            {
+                node.edges.RemoveAll(e => e.to == startNode || e.to == goalNode);
+            }
+            return null;
+        }
 
         List<AbstractNode> hlPath = Pathfinder.FindHighLevelPath(startNode, goalNode);
 
         if (hlPath == null || hlPath.Count == 0)
         {
+            foreach (AbstractNode node in graph)
+            {
+                node.edges.RemoveAll(e => e.to == startNode || e.to == goalNode);
+            }
+
             return null;
         }
 
         List<Vector3> fullPath = new List<Vector3>();
-
-        // Cursor tracking where the agent actually is during stitching
         Vector2 currentChunk = startChunk;
         Vector2 currentTile = startTile;
 
@@ -120,12 +144,15 @@ public class BaseAI : MonoBehaviour
         {
             if (waypoint.chunkPos == currentChunk)
             {
-                // Same chunk: low-level A* from current position to this waypoint
                 AppendLowLevel(fullPath, currentChunk, currentTile, waypoint.tilePos);
             }
             else
             {
-                // Different chunk: single step across the border (tiles are adjacent by construction)
+                AbstractNode mirror = GetMirrorNode(waypoint, currentChunk);
+                if (mirror != null)
+                {
+                    AppendLowLevel(fullPath, currentChunk, currentTile, mirror.tilePos);
+                }
                 fullPath.Add(new Vector3(waypoint.worldPos.x, waypoint.worldPos.y, -1f));
             }
 
@@ -133,8 +160,12 @@ public class BaseAI : MonoBehaviour
             currentTile = waypoint.tilePos;
         }
 
-        // Final leg from last waypoint to the actual goal tile
-        AppendLowLevel(fullPath, goalChunk, currentTile, goalTile);
+        AppendLowLevel(fullPath, currentChunk, currentTile, goalTile);
+
+        foreach (AbstractNode node in graph)
+        {
+            node.edges.RemoveAll(e => e.to == startNode || e.to == goalNode);
+        }
 
         return fullPath;
     }
@@ -174,5 +205,29 @@ public class BaseAI : MonoBehaviour
             result.Add(worldPos);
         }
         return result;
+    }
+    private AbstractNode GetMirrorNode(AbstractNode crossingNode, Vector2 currentChunk)
+    {
+        // The mirror is the node in currentChunk that has an edge pointing to crossingNode
+        List<AbstractNode> graph = m_gridManager.GetAbstractGraph();
+
+        foreach (AbstractNode node in graph)
+        {
+            if (node.chunkPos != currentChunk)
+            {
+                continue;
+            }
+
+            foreach (AbstractEdge edge in node.edges)
+            {
+                if (edge.to == crossingNode)
+                {
+                    return node;
+                }
+            }
+        }
+
+        Debug.LogWarning($"No mirror node found in chunk {currentChunk} for crossing node {crossingNode.worldPos}");
+        return null;
     }
 }

@@ -76,10 +76,9 @@ public static class HPAGraphBuilder
 
         Vector2 chunkB = checkRight ? new Vector2(cordNumber, cy) : new Vector2(cx, cy + 1);
 
-        // Find contiguous runs of walkable border tiles and place one node per run
         int runStart = -1;
 
-        for (int t = 0; t <= chunkSize; t++) // one past the end to flush the final run
+        for (int t = 0; t <= chunkSize; t++)
         {
             Vector2 tileA = checkRight ? new Vector2(chunkSize - 1, t) : new Vector2(t, chunkSize - 1);
             Vector2 tileB = checkRight ? new Vector2(0, t) : new Vector2(t, 0);
@@ -88,22 +87,35 @@ public static class HPAGraphBuilder
 
             if (walkable && runStart == -1)
             {
-                // Start of a new run
                 runStart = t;
             }
             else if (!walkable && runStart != -1)
             {
-                // End of a run — place one node at the midpoint
-                int mid = (runStart + t - 1) / 2;
+                // Start of run
+                Vector2 startTileA = checkRight ? new Vector2(chunkSize - 1, runStart) : new Vector2(runStart, chunkSize - 1);
+                Vector2 startTileB = checkRight ? new Vector2(0, runStart) : new Vector2(runStart, 0);
+                AbstractNode startNodeA = GetOrCreate(chunk, startTileA, chunkSize, nodeMap, nodes);
+                AbstractNode startNodeB = GetOrCreate(chunkB, startTileB, chunkSize, nodeMap, nodes);
+                startNodeA.edges.Add(new AbstractEdge(startNodeB, 1f));
+                startNodeB.edges.Add(new AbstractEdge(startNodeA, 1f));
 
+                // Midpoint
+                int mid = (runStart + t - 1) / 2;
                 Vector2 midTileA = checkRight ? new Vector2(chunkSize - 1, mid) : new Vector2(mid, chunkSize - 1);
                 Vector2 midTileB = checkRight ? new Vector2(0, mid) : new Vector2(mid, 0);
+                AbstractNode midNodeA = GetOrCreate(chunk, midTileA, chunkSize, nodeMap, nodes);
+                AbstractNode midNodeB = GetOrCreate(chunkB, midTileB, chunkSize, nodeMap, nodes);
+                midNodeA.edges.Add(new AbstractEdge(midNodeB, 1f));
+                midNodeB.edges.Add(new AbstractEdge(midNodeA, 1f));
 
-                AbstractNode nodeA = GetOrCreate(chunk, midTileA, chunkSize, nodeMap, nodes);
-                AbstractNode nodeB = GetOrCreate(chunkB, midTileB, chunkSize, nodeMap, nodes);
-
-                nodeA.edges.Add(new AbstractEdge(nodeB, 1f));
-                nodeB.edges.Add(new AbstractEdge(nodeA, 1f));
+                // End of run
+                int runEnd = t - 1;
+                Vector2 endTileA = checkRight ? new Vector2(chunkSize - 1, runEnd) : new Vector2(runEnd, chunkSize - 1);
+                Vector2 endTileB = checkRight ? new Vector2(0, runEnd) : new Vector2(runEnd, 0);
+                AbstractNode endNodeA = GetOrCreate(chunk, endTileA, chunkSize, nodeMap, nodes);
+                AbstractNode endNodeB = GetOrCreate(chunkB, endTileB, chunkSize, nodeMap, nodes);
+                endNodeA.edges.Add(new AbstractEdge(endNodeB, 1f));
+                endNodeB.edges.Add(new AbstractEdge(endNodeA, 1f));
 
                 runStart = -1;
             }
@@ -149,7 +161,7 @@ public static class HPAGraphBuilder
             byChunk[node.chunkPos].Add(node);
         }
 
-        foreach (var kvp in byChunk)
+        foreach (KeyValuePair<Vector2, List<AbstractNode>> kvp in byChunk)
         {
             Vector2 chunkPos = kvp.Key;
             List<AbstractNode> chunkNodes = kvp.Value;

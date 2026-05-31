@@ -9,9 +9,12 @@ public class Tile : MonoBehaviour
     [SerializeField] private SpriteRenderer m_renderer;
     [SerializeField] private GameObject m_highlight;
     [SerializeField] private GameObject m_road;
+    [SerializeField] private GameObject m_debugBuilding;
     [SerializeField] private float m_moveCost;
     private GridManager m_gridManager;
     private TileType m_tileType = TileType.e_None;
+    private bool m_isBuildingOrigin = false;
+    private BuildingData m_buildingData = null;
 
     //Higher the number the slower the tile is
     public const float COST_ROAD = 0.5f;
@@ -28,7 +31,7 @@ public class Tile : MonoBehaviour
     void OnMouseEnter()
     {
         m_gridManager.SetHighlightedTile(this.transform.position);
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && m_tileType != TileType.e_Building)
         {
             SetTileToRoad();
         }
@@ -41,7 +44,10 @@ public class Tile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        SetTileToRoad();
+        if (m_tileType != TileType.e_Building)
+        {
+            SetTileToRoad();
+        }
     }
 
     private void SetTileToRoad()
@@ -77,5 +83,67 @@ public class Tile : MonoBehaviour
     public TileType ThisTylesType()
     {
         return m_tileType;
+    }
+    private void Update()
+    {
+        if (!isHighlighted())
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            m_gridManager.TryPlaceBuilding(m_gridManager.WorldToGridChunk(transform.position),m_gridManager.WorldToGridTile(transform.position));
+        }
+    }
+
+    public void SetOccupiedVisual()
+    {
+        m_renderer.color = Color.black;
+    }
+    public void OccupyAsBuilding(BuildingData data, bool isOrigin)
+    {
+        m_tileType = TileType.e_Building;
+        m_isBuildingOrigin = isOrigin;
+        m_buildingData = isOrigin ? data : null;
+        m_debugBuilding.SetActive(isOrigin);
+        SetOccupiedVisual();
+    }
+
+    public bool IsBuildingOrigin() => m_isBuildingOrigin;
+    public BuildingData GetBuildingData() => m_buildingData;
+
+    public TileSaveData GetSaveData(Vector2 chunkPos, Vector2 tilePos)
+    {
+        return new TileSaveData
+        {
+            m_chunkX = chunkPos.x,
+            m_chunkY = chunkPos.y,
+            m_tileX = tilePos.x,
+            m_tileY = tilePos.y,
+            m_tileType = m_tileType,
+            m_isBuildingOrigin = m_isBuildingOrigin,
+            m_buildingWidth = m_buildingData?.m_width ?? 3,
+            m_buildingHeight = m_buildingData?.m_height ?? 3
+        };
+    }
+
+    public void LoadTileType(TileType type)
+    {
+        m_tileType = type;
+        switch (type)
+        {
+            case TileType.e_Road:
+                {
+                    m_road.SetActive(true); 
+                    break;
+                }
+            case TileType.e_Building:
+                { 
+                    m_debugBuilding.SetActive(true);
+                    SetOccupiedVisual();
+                    break; 
+                }
+        }
     }
 }

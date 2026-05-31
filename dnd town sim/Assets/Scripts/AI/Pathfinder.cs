@@ -248,27 +248,67 @@ public class Pathfinder
         return null;
     }
 
-    public static AbstractNode GetNearestNode(Vector3 worldPos,Vector2 chunkPos,List<AbstractNode> graph)
+    public static AbstractNode GetNearestNode(Vector3 worldPos, Vector2 chunkPos,
+        List<AbstractNode> graph, GridManager grid)
     {
         AbstractNode best = null;
-        float bestDist = float.MaxValue;
+        float bestCost = float.MaxValue;
+
+        grid.WorldToGrid(worldPos, out Vector2 agentChunk, out Vector2 agentTile);
 
         foreach (AbstractNode node in graph)
         {
-            if (node.chunkPos != chunkPos)
+            if (node.chunkPos != chunkPos) continue;
+
+            List<Vector2> path = Pathfinder.FindPathInChunk(
+                chunkPos, agentTile, node.tilePos, grid, grid.m_chunksSide);
+
+            if (path == null) continue;
+
+            // Use actual path cost rather than straight line distance
+            float cost = 0f;
+            for (int i = 1; i < path.Count; i++)
             {
-                continue;
+                Vector3 wp = Pathfinder.ChunkTileToWorld(chunkPos, path[i], grid.m_chunksSide);
+                cost += grid.GetMoveCostAt(wp);
             }
 
-            float dist = Mathf.Abs(node.worldPos.x - worldPos.x) + Mathf.Abs(node.worldPos.y - worldPos.y);
-
-            if (dist < bestDist)
+            if (cost < bestCost)
             {
-                bestDist = dist;
+                bestCost = cost;
                 best = node;
             }
         }
 
         return best;
+    }
+    public static AbstractNode BuildTemporaryNode(Vector3 worldPos, Vector2 chunkPos,
+    Vector2 tilePos, List<AbstractNode> graph, GridManager grid)
+    {
+        AbstractNode tempNode = new AbstractNode(chunkPos, tilePos, grid.m_chunksSide);
+        tempNode.worldPos = worldPos;
+
+        // Connect to every reachable node in the same chunk
+        foreach (AbstractNode node in graph)
+        {
+            if (node.chunkPos != chunkPos) continue;
+
+            List<Vector2> path = FindPathInChunk(chunkPos, tilePos, node.tilePos, grid, grid.m_chunksSide);
+
+            if (path == null) continue;
+
+            float cost = 0f;
+            for (int i = 1; i < path.Count; i++)
+            {
+                Vector3 wp = ChunkTileToWorld(chunkPos, path[i], grid.m_chunksSide);
+                cost += grid.GetMoveCostAt(wp);
+            }
+
+            tempNode.edges.Add(new AbstractEdge(node, cost));
+            node.edges.Add(new AbstractEdge(tempNode, cost));
+        }
+
+        // Return null if no connections were made — position is completely isolated
+        return tempNode.edges.Count > 0 ? tempNode : null;
     }
 }
