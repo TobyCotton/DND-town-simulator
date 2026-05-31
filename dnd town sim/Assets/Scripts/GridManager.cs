@@ -54,6 +54,12 @@ public class GridManager : MonoBehaviour
         {
             SaveMap();
         }
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            BaseAI spawnedAi = Instantiate(m_aiAgentsPrefabs[0], m_currentHighlightedCell, Quaternion.identity);
+            spawnedAi.SetGridManager(this);
+            m_activeAIAgents.Add(spawnedAi);
+        }
     }
     void GenerateGrid()
     {
