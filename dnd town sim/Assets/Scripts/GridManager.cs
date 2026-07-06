@@ -7,9 +7,10 @@ public class GridManager : MonoBehaviour
     [SerializeField] public int m_chunksSide, m_numberOfChunksSide;
     [SerializeField] private Tile mpr_tile;
     [SerializeField] private Transform m_camTransform;
-    [SerializeField] private List<BaseAI> m_aiAgentsPrefabs;
-    [SerializeField] private List<BaseBuilding> m_buildingAgentsPrefabs;
+    [SerializeField] public List<BaseAI> m_aiAgentsPrefabs;
+    [SerializeField] public List<BaseBuilding> m_buildingAgentsPrefabs;
 
+    public bool m_nextClickSpawnBuilding;
     private Vector3 m_currentHighlightedCell;
     private List<BaseAI> m_activeAIAgents;
     private Dictionary<Vector2, Dictionary<Vector2, Tile>> m_grid;

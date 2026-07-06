@@ -44,6 +44,11 @@ public class Tile : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (m_gridManager.m_nextClickSpawnBuilding)
+        {
+            m_gridManager.TryPlaceBuilding(m_gridManager.WorldToGridChunk(transform.position), m_gridManager.WorldToGridTile(transform.position));
+            m_gridManager.m_nextClickSpawnBuilding = false;
+        }
         if (m_tileType != TileType.e_Building)
         {
             SetTileToRoad();
@@ -89,11 +94,6 @@ public class Tile : MonoBehaviour
         if (!isHighlighted())
         {
             return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            m_gridManager.TryPlaceBuilding(m_gridManager.WorldToGridChunk(transform.position),m_gridManager.WorldToGridTile(transform.position));
         }
     }
     public void OccupyAsBuilding(BuildingData data, bool isOrigin)

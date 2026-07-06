@@ -2,13 +2,14 @@ using UnityEngine;
 
 public class ImguiScript : MonoBehaviour
 {
+    [SerializeField] GridManager m_gridManager;
     private void OnGUI()
     {
-        GUI.Box(new Rect(10, 10, 100, 90), "debug window");
+        GUI.Box(new Rect(10, 10, 200, 90), "debug window");
 
-        if (GUI.Button(new Rect(20, 40, 80, 20), "debug print"))
+        if (GUI.Button(new Rect(30, 40, 160, 20), "Spawn Building"))
         {
-            Debug.LogWarning("It works");
+            m_gridManager.m_nextClickSpawnBuilding = true;
         }
     }
 }
