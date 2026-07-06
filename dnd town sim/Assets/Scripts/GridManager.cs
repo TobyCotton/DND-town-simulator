@@ -8,6 +8,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Tile mpr_tile;
     [SerializeField] private Transform m_camTransform;
     [SerializeField] private List<BaseAI> m_aiAgentsPrefabs;
+    [SerializeField] private List<BaseBuilding> m_buildingAgentsPrefabs;
 
     private Vector3 m_currentHighlightedCell;
     private List<BaseAI> m_activeAIAgents;
@@ -229,7 +230,12 @@ public class GridManager : MonoBehaviour
                 );
 
                 Tile tile = GetTileAtPosition(resolvedChunk, resolvedTile);
-                tile.OccupyAsBuilding(m_data, isOrigin: dx == width / 2 && dy == height / 2);
+                bool isOrigin = dx == width / 2 && dy == height / 2;
+                tile.OccupyAsBuilding(m_data, isOrigin);
+                if (isOrigin)
+                {
+                    BaseBuilding spawnedBuilding = Instantiate(m_buildingAgentsPrefabs[0], new Vector3(tile.transform.position.x, tile.transform.position.y, -2), Quaternion.identity);
+                }
             }
         }
 

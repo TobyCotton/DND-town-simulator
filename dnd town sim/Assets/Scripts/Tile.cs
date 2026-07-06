@@ -96,18 +96,11 @@ public class Tile : MonoBehaviour
             m_gridManager.TryPlaceBuilding(m_gridManager.WorldToGridChunk(transform.position),m_gridManager.WorldToGridTile(transform.position));
         }
     }
-
-    public void SetOccupiedVisual()
-    {
-        m_renderer.color = Color.black;
-    }
     public void OccupyAsBuilding(BuildingData data, bool isOrigin)
     {
         m_tileType = TileType.e_Building;
         m_isBuildingOrigin = isOrigin;
         m_buildingData = isOrigin ? data : null;
-        m_debugBuilding.SetActive(isOrigin);
-        SetOccupiedVisual();
     }
 
     public bool IsBuildingOrigin() => m_isBuildingOrigin;
@@ -140,8 +133,8 @@ public class Tile : MonoBehaviour
                 }
             case TileType.e_Building:
                 { 
-                    m_debugBuilding.SetActive(true);
-                    SetOccupiedVisual();
+                    //m_debugBuilding.SetActive(true);
+                    //SetOccupiedVisual();
                     break; 
                 }
         }

@@ -620,7 +620,7 @@ MonoBehaviour:
     m_HSlider: 0
     m_VSlider: 0
     m_IgnoreScrollWheelUntilClicked: 0
-    m_EnableMouseInput: 0
+    m_EnableMouseInput: 1
     m_EnableSliderZoomHorizontal: 0
     m_EnableSliderZoomVertical: 0
     m_UniformScale: 1
@@ -698,7 +698,8 @@ MonoBehaviour:
       m_SelectedIDs: []
       m_LastClickedID:
         m_rawData: 0
-      m_ExpandedIDs: []
+      m_ExpandedIDs:
+      - m_rawData: 568105589213722566
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1338,7 +1339,7 @@ MonoBehaviour:
   m_Position:
     m_Target: {x: 0, y: 0, z: 0}
     speed: 2
-    m_Value: {x: 42.145638, y: 1.936543, z: 0.028561141}
+    m_Value: {x: 0, y: 0, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1391,7 +1392,7 @@ MonoBehaviour:
   m_Size:
     m_Target: 10
     speed: 2
-    m_Value: 7.1437306
+    m_Value: 10
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1497,12 +1498,13 @@ MonoBehaviour:
   m_LastLocalAssetsSearchArea: 1
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: []
+    m_SelectedIDs:
+    - m_rawData: 568105584918841670
     m_LastClickedID:
-      m_rawData: 0
+      m_rawData: 568105584918841670
     m_ExpandedIDs:
     - m_rawData: 0
-    - m_rawData: 568105584918836388
+    - m_rawData: 568105584918830910
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1536,7 +1538,7 @@ MonoBehaviour:
       m_rawData: 0
     m_ExpandedIDs:
     - m_rawData: 0
-    - m_rawData: 568105584918836388
+    - m_rawData: 568105584918830910
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
