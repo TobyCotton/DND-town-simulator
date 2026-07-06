@@ -266,6 +266,7 @@ MonoBehaviour:
   - {fileID: 2416276531142117121, guid: 7084677ea76965e449b9f4f4f7b6d038, type: 3}
   m_buildingAgentsPrefabs:
   - {fileID: 3098791403870927435, guid: 91cdd78d0ff7aa247a4b87c619fd6313, type: 3}
+  m_nextClickSpawnBuilding: 0
 --- !u!4 &522774426
 Transform:
   m_ObjectHideFlags: 0
@@ -293,6 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b6956a38ec2b6f41b76363498135819, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImguiScript
+  m_gridManager: {fileID: 522774425}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
