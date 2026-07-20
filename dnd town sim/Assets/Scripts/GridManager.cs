@@ -65,6 +65,7 @@ public class GridManager : MonoBehaviour
     }
     void GenerateGrid()
     {
+        GameObject parentObject = new GameObject("Grid");
         for (int x1 = 0; x1 < m_numberOfChunksSide; x1++)
         {
             for (int y1 = 0; y1 < m_numberOfChunksSide; y1++)
@@ -75,6 +76,7 @@ public class GridManager : MonoBehaviour
                     for (int y = 0; y < m_chunksSide; y++)
                     {
                         var spawnedTile = Instantiate(mpr_tile, new Vector3(x+(x1*m_chunksSide), y + (y1 * m_chunksSide)), Quaternion.identity);
+                        spawnedTile.transform.SetParent(parentObject.transform);
                         spawnedTile.name = $"Chunk {x1} {y1} Tile {x} {y}";
 
                         bool isOffSet = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
