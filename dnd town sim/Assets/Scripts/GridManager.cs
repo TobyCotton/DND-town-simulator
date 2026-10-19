@@ -15,11 +15,22 @@ public class GridManager : MonoBehaviour
     private List<BaseAI> m_activeAIAgents;
     private Dictionary<Vector2, Dictionary<Vector2, Tile>> m_grid;
     private List<AbstractNode> m_abstractGraph;
+    private List<Renderer> m_floorRenderers = new List<Renderer>();
+    private bool m_floorVisible = true;
+    private BaseBuilding m_unplacedBuilding = null;
+    public bool IsPlacingBuilding => m_unplacedBuilding != null;
 
     private static string SavePath => System.IO.Path.Combine(Application.persistentDataPath, "mapSave.json");
     public List<AbstractNode> GetAbstractGraph()
     {
         return m_abstractGraph;
+    }
+    public void CreateBuilding()
+    {
+        if (m_unplacedBuilding != null) return;
+
+        m_unplacedBuilding = Instantiate(m_buildingAgentsPrefabs[0], new Vector3(0, 0, -2), Quaternion.identity);
+        m_unplacedBuilding.SetPlaced(false);
     }
     public void SetHighlightedTile(Vector3 tilePose)
     {
@@ -66,6 +77,8 @@ public class GridManager : MonoBehaviour
     void GenerateGrid()
     {
         GameObject parentObject = new GameObject("Grid");
+        m_floorRenderers.Clear();
+
         for (int x1 = 0; x1 < m_numberOfChunksSide; x1++)
         {
             for (int y1 = 0; y1 < m_numberOfChunksSide; y1++)
@@ -75,12 +88,20 @@ public class GridManager : MonoBehaviour
                 {
                     for (int y = 0; y < m_chunksSide; y++)
                     {
-                        var spawnedTile = Instantiate(mpr_tile, new Vector3(x+(x1*m_chunksSide), y + (y1 * m_chunksSide)), Quaternion.identity);
+                        var spawnedTile = Instantiate(mpr_tile, new Vector3(x + (x1 * m_chunksSide), y + (y1 * m_chunksSide)), Quaternion.identity);
                         spawnedTile.transform.SetParent(parentObject.transform);
                         spawnedTile.name = $"Chunk {x1} {y1} Tile {x} {y}";
 
                         bool isOffSet = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
-                        spawnedTile.Init(isOffSet,this);
+                        spawnedTile.Init(isOffSet, this);
+
+                        // Root renderer only (not InChildren), so road/building child objects stay visible
+                        Renderer floorRenderer = spawnedTile.GetComponent<Renderer>();
+                        if (floorRenderer != null)
+                        {
+                            floorRenderer.sortingOrder = -100;
+                            m_floorRenderers.Add(floorRenderer);
+                        }
 
                         chunk[new Vector2(x, y)] = spawnedTile;
                     }
@@ -88,7 +109,7 @@ public class GridManager : MonoBehaviour
                 m_grid[new Vector2(x1, y1)] = chunk;
             }
         }
-        m_camTransform.transform.position = new Vector3((float)(m_numberOfChunksSide*m_chunksSide) / 2 - 0.5f, (float)(m_numberOfChunksSide * m_chunksSide) / 2 - 0.5f, -10);
+        m_camTransform.transform.position = new Vector3((float)(m_numberOfChunksSide * m_chunksSide) / 2 - 0.5f, (float)(m_numberOfChunksSide * m_chunksSide) / 2 - 0.5f, -10);
     }
 
     public Tile GetTileAtPosition(Vector2 chunkPos,Vector2 pos)
@@ -177,12 +198,9 @@ public class GridManager : MonoBehaviour
         {
             for (int dy = 0; dy < height; dy++)
             {
-                Vector2 resolvedChunk;
-                Vector2 resolvedTile;
-
                 bool inBounds = WorldTileToChunkTile(
                     chunkPos, topLeft + new Vector2(dx, dy),
-                    out resolvedChunk, out resolvedTile
+                    out Vector2 resolvedChunk, out Vector2 resolvedTile
                 );
 
                 if (!inBounds)
@@ -224,20 +242,31 @@ public class GridManager : MonoBehaviour
         {
             for (int dy = 0; dy < height; dy++)
             {
-                Vector2 resolvedChunk;
-                Vector2 resolvedTile;
-
                 WorldTileToChunkTile(
                     chunkPos, topLeft + new Vector2(dx, dy),
-                    out resolvedChunk, out resolvedTile
+                    out Vector2 resolvedChunk, out Vector2 resolvedTile
                 );
 
                 Tile tile = GetTileAtPosition(resolvedChunk, resolvedTile);
                 bool isOrigin = dx == width / 2 && dy == height / 2;
                 tile.OccupyAsBuilding(m_data, isOrigin);
+
                 if (isOrigin)
                 {
-                    BaseBuilding spawnedBuilding = Instantiate(m_buildingAgentsPrefabs[0], new Vector3(tile.transform.position.x, tile.transform.position.y, -2), Quaternion.identity);
+                    Vector3 buildingPos = new Vector3(tile.transform.position.x, tile.transform.position.y, -2);
+
+                    if (m_unplacedBuilding != null)
+                    {
+                        // Drop the floating building here instead of spawning a new one
+                        m_unplacedBuilding.transform.position = buildingPos;
+                        m_unplacedBuilding.SetPlaced(true);
+                        m_unplacedBuilding = null;
+                    }
+                    else
+                    {
+                        // Nothing held (e.g. LoadMap), so spawn one
+                        Instantiate(m_buildingAgentsPrefabs[0], buildingPos, Quaternion.identity);
+                    }
                 }
             }
         }
@@ -326,5 +355,18 @@ public class GridManager : MonoBehaviour
             }
         }
         return false;
+    }
+    public void SetFloorVisible(bool visible)
+    {
+        m_floorVisible = visible;
+        for (int i = 0; i < m_floorRenderers.Count; i++)
+        {
+            m_floorRenderers[i].enabled = visible;
+        }
+    }
+
+    public void ToggleFloor()
+    {
+        SetFloorVisible(!m_floorVisible);
     }
 } 

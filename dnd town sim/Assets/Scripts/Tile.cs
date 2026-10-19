@@ -44,11 +44,14 @@ public class Tile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (m_gridManager.m_nextClickSpawnBuilding)
+        if (m_gridManager.IsPlacingBuilding)
         {
-            m_gridManager.TryPlaceBuilding(m_gridManager.WorldToGridChunk(transform.position), m_gridManager.WorldToGridTile(transform.position));
-            m_gridManager.m_nextClickSpawnBuilding = false;
+            m_gridManager.TryPlaceBuilding(
+                m_gridManager.WorldToGridChunk(transform.position),
+                m_gridManager.WorldToGridTile(transform.position));
+            return; // no road painting while placing, even if placement failed
         }
+
         if (m_tileType != TileType.e_Building)
         {
             SetTileToRoad();
