@@ -164,6 +164,10 @@ public class BaseAI : MonoBehaviour
     }
     protected void UpdateToDo()
     {
+        if (m_gridManager == null || !m_gridManager.IsReady)
+        {
+            return;
+        }
         foreach (Task task in m_toDoGoals)
         {
             task.UpdatecoolDownPeriod();
