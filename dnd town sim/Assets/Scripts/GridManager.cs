@@ -18,6 +18,7 @@ public class GridManager : MonoBehaviour
     private List<Renderer> m_floorRenderers = new List<Renderer>();
     private bool m_floorVisible = true;
     private BaseBuilding m_unplacedBuilding = null;
+    public bool IsReady => m_grid != null;
     public bool IsPlacingBuilding => m_unplacedBuilding != null;
 
     private static string SavePath => System.IO.Path.Combine(Application.persistentDataPath, "mapSave.json");
@@ -59,7 +60,7 @@ public class GridManager : MonoBehaviour
             {
                 if (ai.isSelected())
                 {
-                    ai.SetDestination(m_currentHighlightedCell);
+                    ai.m_homePosition = m_currentHighlightedCell;
                 }
             }
         }
