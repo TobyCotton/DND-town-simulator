@@ -23,7 +23,6 @@ public class BaseAI : MonoBehaviour
     protected List<Task> m_goals = new List<Task>();
     [System.NonSerialized]
     public List<Task> m_toDoGoals = new List<Task>();
-    public NavMeshAgent m_agent;
     public BaseBuilding m_work;
     protected List<Task> m_tasks = new List<Task>();
     protected List<List<Task>> m_taskListOptions = new List<List<Task>>();
@@ -45,6 +44,19 @@ public class BaseAI : MonoBehaviour
         //m_goals.Add(new GetFood());
     }
 
+    protected void FindHome()
+    {
+        HomeScript[] temp = Object.FindObjectsByType<HomeScript>();
+        for (int i = 0; i < temp.Length; i++)
+        {
+            if (!temp[i].m_assignedAi)
+            {
+                temp[i].m_assignedAi = this;
+                m_homePosition = temp[i].transform.position;
+                i = temp.Length;
+            }
+        }
+    }
     private void Start()
     {
         m_currentlyMoving = false;
